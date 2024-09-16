@@ -19,8 +19,13 @@ import { useForm } from "react-hook-form";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { z } from "zod";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { signIn } from "next-auth/react";
 
 const LoginForm = () => {
+  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
   const form = useForm({
     resolver: zodResolver(LoginSchema),
     defaultValues: {
@@ -29,8 +34,17 @@ const LoginForm = () => {
     },
   });
 
-  const onSubmit = (data: z.infer<typeof LoginSchema>) => {
-    console.log(data);
+  const onSubmit = async (data: z.infer<typeof LoginSchema>) => {
+    const loginData = await signIn("credentials", {
+      redirect: false,
+      email: data.email,
+      password: data.password,
+    });
+    if (loginData?.error) {
+      setError("Invalid email or password. Please try again.");
+    } else {
+      router.push("/auth/dashboard");
+    }
   };
 
   return (
@@ -74,6 +88,7 @@ const LoginForm = () => {
               )}
             />
           </div>
+          {error && <div className="text-red-500 text-center">{error}</div>}
           <Button type="submit" className="w-full">
             Login
           </Button>

@@ -19,8 +19,10 @@ import { useForm } from "react-hook-form";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { z } from "zod";
+import { useRouter } from "next/navigation";
 
 const RegisterForm = () => {
+  const router = useRouter();
   const form = useForm({
     resolver: zodResolver(RegisterSchema),
     defaultValues: {
@@ -31,8 +33,24 @@ const RegisterForm = () => {
     },
   });
 
-  const onSubmit = (data: z.infer<typeof RegisterSchema>) => {
-    console.log(data);
+  const onSubmit = async (data: z.infer<typeof RegisterSchema>) => {
+    const response = await fetch("/api/user", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: data.email,
+        name: data.name,
+        password: data.password,
+      }),
+    });
+
+    if (response.ok) {
+      router.push("/auth/login");
+    } else {
+      console.error("Failed to register");
+    }
   };
 
   return (
